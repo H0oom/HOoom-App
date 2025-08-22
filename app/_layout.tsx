@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import '../global.css';
 import { StatusBar } from 'expo-status-bar';
+import GlobalState from '@/src/context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,13 +24,13 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GlobalState>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
           headerShown: false,
         }}
       />
-    </>
+    </GlobalState>
   );
 }
