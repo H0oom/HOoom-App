@@ -17,7 +17,7 @@ export function ChatHeader({ user, onBack, onCall }: ChatHeaderProps) {
             <AntDesign name="arrowleft" color="black" size={16} />
           </Pressable>
           <View className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-            <Text>{user.avatar}</Text>
+            <Text>🧑‍💻</Text>
           </View>
           <View>
             <Text className="text-lg font-medium text-black">{user.name}</Text>
