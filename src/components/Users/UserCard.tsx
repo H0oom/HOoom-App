@@ -23,7 +23,6 @@ function UserCard({ user }: { user: any }) {
       transform: [{ scale: scale.value }],
       backgroundColor: interpolateColor(backgroundColor.value, [0, 1], ['#ffffff', '#f9fafb']),
       shadowOpacity: shadowOpacity.value,
-      shadowOffset: { width: 0, height: 2 },
       shadowRadius: 8,
       elevation: shadowOpacity.value * 4,
     };
