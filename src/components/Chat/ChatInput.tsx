@@ -16,6 +16,10 @@ export function ChatInput({ message, setMessage, sendMessage }: ChatInputProps) 
           placeholder="메시지를 입력하세요..."
           className="h-12 flex-1 rounded-xl border-gray-200 bg-gray-50 text-black placeholder-gray-400 focus:border-black focus:ring-1 focus:ring-black"
           keyboardType="default"
+          autoCorrect={false}
+          autoCapitalize="none"
+          textContentType="none"
+          autoComplete="off"
         />
         <Pressable onPress={sendMessage} className="justify-center rounded-xl bg-black px-6">
           <Text className="font-white text-white">전송</Text>
