@@ -5,9 +5,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserCard from '@/src/components/Users/UserCard';
 import { useContext } from 'react';
 import { GlobalContext } from '@/src/context';
+import { router } from 'expo-router';
 
 export default function UsersScreen() {
-  const { users, ready } = useContext(GlobalContext);
+  const { users, ready, my_name } = useContext(GlobalContext);
   return (
     <View className="flex-1 bg-white pt-10">
       <View className="border-b border-gray-100 bg-white p-6">
@@ -18,14 +19,15 @@ export default function UsersScreen() {
             </View>
             <Text className="text-3xl font-light tracking-tight text-black">hoom</Text>
           </View>
-          <Pressable onPress={() => AsyncStorage.removeItem('accessToken')}>
+          <Pressable
+            onPress={() => {
+              AsyncStorage.removeItem('accessToken');
+              router.push('/auth');
+            }}>
             <Text>logout</Text>
           </Pressable>
           <View className="flex items-center space-x-6">
-            <View className="flex items-center space-x-2">
-              <View className="h-2 w-2 rounded-full bg-green-500" />
-              <Text className="font-medium text-gray-600">14 online</Text>
-            </View>
+            <Text className="font-medium text-gray-600">{my_name}</Text>
           </View>
         </View>
       </View>
