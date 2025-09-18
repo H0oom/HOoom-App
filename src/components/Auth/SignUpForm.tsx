@@ -32,7 +32,7 @@ export function SignUpForm() {
         });
 
         // 성공 처리
-        login(data.token);
+        login(data.token, data.fullname);
 
         router.push('/users'); // 로그인 페이지로 이동
       } catch (e: any) {

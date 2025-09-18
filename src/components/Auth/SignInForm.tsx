@@ -25,7 +25,7 @@ export function SignInForm() {
           email: formData.email,
           password: formData.password,
         });
-        login(data.token);
+        login(data.token, data.fullname);
         router.push('/users');
       } catch (e: any) {
         e.response.status === 404 && setErrMassage('존재하지 않는 유저 입니다.');
