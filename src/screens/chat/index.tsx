@@ -1,51 +1,95 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useChat } from '@/src/hooks/useChat';
+import { useChat, Message } from '@/src/hooks/useChat';
 import { ChatHeader } from '@/src/components/Chat/ChatHeader';
 import { ChatInput } from '@/src/components/Chat/ChatInput';
 import { ChatMessages } from '@/src/components/Chat/ChatMessages';
 import { Text, View, KeyboardAvoidingView, Platform } from 'react-native';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { GlobalContext } from '@/src/context';
 import { AuthInstance } from '@/src/API/axios';
+import { io, Socket } from 'socket.io-client';
 
 export default function ChatScreen() {
-  const { users } = useContext(GlobalContext);
+  const { users, room_id, setRoom_id, token, my_name } = useContext(GlobalContext);
   const params = useLocalSearchParams();
   const userId = Number(params.userId);
   const user = users.find((u) => u.id === userId);
-  const { message, setMessage, sendMessage } = useChat(user?.name || '', userId);
-  const [ready, setReady] = useState(false);
-  const [room_id, setRoom_Id] = useState();
-  const [messages, setMessages] = useState([]);
+  const { message, setMessage, messages, setMessages } = useChat(userId);
 
-  const connectChatting = async () => {
+  const socket = io(`${process.env.SOCKET_URL}`, {
+    transports: ['websocket'],
+  });
+  const socketRef = useRef<Socket | null>(null);
+
+  const connectRoom = async () => {
     try {
       const { data } = await AuthInstance.post('/chat/session', {
         target_user_id: userId,
       });
-      setRoom_Id(data.room_id);
-      setReady(true);
-      console.log('connectChat ', data);
-    } catch (e) {
-      console.log(e);
+      setRoom_id(data.room_id);
+    } catch (e: any) {
+      console.log('con err', e.response);
     }
   };
 
-  const getChatting = async () => {
+  const getMassageList = async () => {
     try {
       const { data } = await AuthInstance.get(`/chat/${room_id}/messages`);
       setMessages(data);
-      console.log('getchat ', data);
-    } catch (e) {
-      console.log(e);
+    } catch (e: any) {
+      console.log('get err', e.response);
     }
   };
+
   useEffect(() => {
-    connectChatting();
-    if (ready) {
-      getChatting();
+    connectRoom();
+  }, []);
+
+  useEffect(() => {
+    if (!room_id) return;
+    getMassageList();
+
+    socketRef.current = socket;
+
+    socketRef.current?.emit('authenticate', { token });
+
+    socketRef.current?.on('auth_error', () => {
+      console.error('auth err');
+    });
+
+    socketRef.current?.emit('join_room', { room_id });
+
+    socket.on('room_joined', (data) => {
+      console.log('room join', data);
+    });
+
+    socketRef.current?.on('connect', () => {
+      console.log('successfully connect');
+    });
+    socketRef.current?.on('error', (error) => {
+      console.error('socket error', error);
+    });
+  }, [room_id]);
+
+  const sendMessage = () => {
+    if (message.trim()) {
+      socketRef.current?.emit('send_message', {
+        room_id: room_id,
+        message: message,
+      });
+      setMessage('');
     }
-  }, [ready]);
+  };
+
+  useEffect(() => {
+    socketRef.current?.on('new_message', (data) => {
+      setMessages((prev) => [...prev, data]);
+    });
+  }, []);
+
+  socketRef.current?.on('room_left', (data) => {
+    console.log('room_left', data);
+  });
 
   if (!user) return <Text>유저를 찾을 수 없습니다.</Text>;
   else
@@ -57,10 +101,13 @@ export default function ChatScreen() {
         <View className="flex-1 flex-col">
           <ChatHeader
             user={user}
-            onBack={() => router.push('/users')}
+            onBack={() => {
+              socketRef.current?.emit('leave_message', { room_id });
+              router.push('/users');
+            }}
             onCall={() => router.push(`/call/${user.id}`)}
           />
-          <ChatMessages messages={messages} />
+          <ChatMessages messagesData={messages} />
           <ChatInput message={message} setMessage={setMessage} sendMessage={sendMessage} />
         </View>
       </KeyboardAvoidingView>
