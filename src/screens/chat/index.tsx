@@ -15,11 +15,18 @@ export default function ChatScreen() {
   const userId = Number(params.userId);
   const user = users.find((u) => u.id === userId);
   const { message, setMessage, messages, setMessages } = useChat(userId);
-
-  const socket = io(`${process.env.SOCKET_URL}`, {
-    transports: ['websocket'],
-  });
   const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const socket = io(`${process.env.SOCKET_URL}`, {
+      transports: ['websocket'],
+    });
+    socketRef.current = socket;
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, []);
 
   const connectRoom = async () => {
     try {
@@ -49,7 +56,12 @@ export default function ChatScreen() {
     if (!room_id) return;
     getMassageList();
 
-    socketRef.current = socket;
+    socketRef.current?.on('connect', () => {
+      console.log('successfully connect');
+    });
+    socketRef.current?.on('error', (error) => {
+      console.error('socket error', error);
+    });
 
     socketRef.current?.emit('authenticate', { token });
 
@@ -59,15 +71,8 @@ export default function ChatScreen() {
 
     socketRef.current?.emit('join_room', { room_id });
 
-    socket.on('room_joined', (data) => {
+    socketRef.current?.on('room_joined', (data) => {
       console.log('room join', data);
-    });
-
-    socketRef.current?.on('connect', () => {
-      console.log('successfully connect');
-    });
-    socketRef.current?.on('error', (error) => {
-      console.error('socket error', error);
     });
   }, [room_id]);
 
@@ -104,6 +109,7 @@ export default function ChatScreen() {
             onBack={() => {
               socketRef.current?.emit('leave_message', { room_id });
               router.push('/users');
+              setRoom_id(0);
             }}
             onCall={() => router.push(`/call/${user.id}`)}
           />
