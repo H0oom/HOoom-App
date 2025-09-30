@@ -81,7 +81,6 @@ function GlobalState({ children }: GlobalStateProps) {
     try {
       setReady(false);
       const { data } = await AuthInstance.get('/users');
-      console.log(data);
       const userData = data.filter((item: User) => item.name !== my_name);
       setUsers(userData);
       setReady(true);
