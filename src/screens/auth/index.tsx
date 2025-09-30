@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { AuthForm } from '@/src/components/Auth/AuthForm';
-import Feather from '@expo/vector-icons/Feather';
+import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 export default function AuthScreen() {
